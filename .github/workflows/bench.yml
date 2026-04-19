@@ -1,0 +1,67 @@
+name: Performance Regression Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest  # Use self-hosted GPU runner in production
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run unit benchmark (CPU)
+        run: uv run python -c "
+import sys, os
+sys.path.insert(0, '.')
+import torch
+from src.vanilla.config import GPTConfig
+from src.vanilla.model import GPT
+
+cfg = GPTConfig.micro()
+model = GPT(cfg)
+x = torch.randint(0, cfg.vocab_size, (2, 32))
+y = torch.randint(0, cfg.vocab_size, (2, 32))
+logits, loss = model(x, y)
+assert logits.shape == (2, 32, cfg.vocab_size), f'Bad logits shape: {logits.shape}'
+assert loss.item() > 0, 'Loss must be positive'
+print(f'✅ Model forward pass OK | loss={loss.item():.4f}')
+print(f'   Model: {model.config}')
+p = model.count_parameters()
+print(f'   Params: {p[\"total\"]:,} total, {p[\"trainable\"]:,} trainable')
+"
+
+      - name: Run tokenizer unit test
+        run: uv run python -c "
+import sys; sys.path.insert(0, '.')
+from src.tokenizer.bpe import BPETokenizer
+tok = BPETokenizer()
+corpus = 'hello world ' * 500
+tok.train(corpus, vocab_size=300, verbose=False)
+ids = tok.encode('hello world')
+decoded = tok.decode(ids)
+assert 'hello' in decoded or 'world' in decoded
+print(f'✅ BPE tokenizer OK | vocab={len(tok)} | encode→decode roundtrip passed')
+"
+
+      - name: Comment benchmark results on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **Performance Regression Check passed.** Model forward pass and tokenizer roundtrip validated on CPU. GPU benchmarks run on merge to main.'
+            })

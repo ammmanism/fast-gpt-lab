@@ -1,0 +1,43 @@
+[project]
+name = "fast-gpt-lab"
+version = "0.1.0"
+description = "High-performance, elite GPT implementation from first principles to Triton kernels."
+authors = [{ name = "Elite Engineer", email = "engineer@example.com" }]
+dependencies = [
+    "torch>=2.2.0",
+    "triton>=2.1.0",
+    "numpy>=1.26.0",
+    "transformers",
+    "tqdm",
+    "wandb",
+    "bitsandbytes",
+    "flash-attn>=2.5.0",
+]
+readme = "README.md"
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0.0",
+    "ruff>=0.3.0",
+    "mypy>=1.9.0",
+    "pre-commit",
+    "pandas",
+    "matplotlib",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "C90", "B"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
