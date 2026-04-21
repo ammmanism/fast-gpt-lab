@@ -208,3 +208,6 @@ __marimo__/
 
 # Internal Automation
 scripts/history_padder.py
+
+# Phase 3 Temporary
+scripts/phase3_padder.py
