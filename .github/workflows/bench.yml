@@ -1,6 +1,7 @@
 name: Performance Regression Check
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [ main, develop ]
   push:
