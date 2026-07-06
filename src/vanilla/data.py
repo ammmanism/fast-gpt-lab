@@ -3,9 +3,10 @@ Data Loading Utilities — fast-gpt-lab
 Memory-mapped binary token files for zero-copy, high-throughput data loading.
 """
 import os
+from pathlib import Path
+
 import numpy as np
 import torch
-from pathlib import Path
 
 
 class DataLoader:
@@ -69,7 +70,7 @@ class DataLoader:
 
 def prepare_tinystories(data_dir: str = "data/") -> None:
     """Download and tokenize TinyStories for quick iteration."""
-    import urllib.request, gzip, shutil
+    import urllib.request
 
     os.makedirs(data_dir, exist_ok=True)
     url = "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStories_all_data.tar.gz"
@@ -83,8 +84,8 @@ def prepare_tinystories(data_dir: str = "data/") -> None:
 def prepare_openwebtext(data_dir: str = "data/", num_proc: int = 8) -> None:
     """Download and tokenize OpenWebText (full GPT-2 pretraining dataset)."""
     try:
-        from datasets import load_dataset
         import tiktoken
+        from datasets import load_dataset
     except ImportError:
         raise RuntimeError("pip install datasets tiktoken")
 

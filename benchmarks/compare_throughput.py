@@ -3,7 +3,9 @@ Throughput Comparator — fast-gpt-lab
 Analyzes Sweep CSVs to generate % speedup baselines for Triton vs PyTorch.
 """
 import os
+
 import pandas as pd
+
 
 def compare_backend_speeds(file_a: str, file_b: str):
     """
@@ -16,11 +18,11 @@ def compare_backend_speeds(file_a: str, file_b: str):
 
     df_a = pd.read_csv(file_a)
     df_b = pd.read_csv(file_b)
-    
+
     # Merge on the 'kernel' column which holds our Forward Batch/Seq definition
     merged = pd.merge(df_a, df_b, on="kernel", suffixes=('_eager', '_triton'))
     merged['speedup_factor'] = merged['time_ms_eager'] / merged['time_ms_triton']
-    
+
     print("\n🚀 Comparative Throughput Analysis:")
     print(merged.to_markdown(index=False))
 

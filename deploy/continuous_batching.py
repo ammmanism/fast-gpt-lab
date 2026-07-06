@@ -3,7 +3,8 @@ Continuous Batching Orchestrator — fast-gpt-lab
 vLLM-style request pooling for maximum high-throughput API serving.
 """
 import asyncio
-from typing import List, Dict
+from typing import List
+
 
 class RequestContext:
     def __init__(self, request_id: str, prompt_tokens: List[int]):
@@ -22,7 +23,7 @@ class ContinuousBatchEngine:
         self.max_batch_size = max_batch_size
         self.waiting_queue = asyncio.Queue()
         self.active_batch: List[RequestContext] = []
-        
+
     async def add_request(self, request_id: str, tokens: List[int]):
         """Ingests new network traffic requests instantly."""
         ctx = RequestContext(request_id, tokens)
@@ -35,14 +36,14 @@ class ContinuousBatchEngine:
         while len(self.active_batch) < self.max_batch_size and not self.waiting_queue.empty():
             new_req = await self.waiting_queue.get()
             self.active_batch.append(new_req)
-            
+
         if not self.active_batch:
             return
 
         # 2. Simulate parallel GPU generation (Matrix Multiplication across all contexts)
         # In actual deployment, this invokes the model(input_ids) loop.
-        await asyncio.sleep(0.05) 
-        
+        await asyncio.sleep(0.05)
+
         # 3. Prune finished requests to free slots dynamically
         retained = []
         for req in self.active_batch:
@@ -52,7 +53,7 @@ class ContinuousBatchEngine:
                 print(f"✅ Finished: {req.request_id}")
             else:
                 retained.append(req)
-                
+
         self.active_batch = retained
 
     async def start_engine(self):

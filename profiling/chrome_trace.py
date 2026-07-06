@@ -4,9 +4,10 @@ Generates JSON traces viewable in chrome://tracing for pipeline analysis.
 """
 import json
 import time
-import torch
 from contextlib import contextmanager
 from pathlib import Path
+
+import torch
 
 
 class ChromeTracer:
@@ -53,7 +54,7 @@ class ChromeTracer:
         with open(path, "w") as f:
             json.dump({"traceEvents": self.events}, f)
         print(f"📊 Chrome trace saved → {path}")
-        print(f"   Open in: chrome://tracing  (or ui.perfetto.dev)")
+        print("   Open in: chrome://tracing  (or ui.perfetto.dev)")
 
     def summary(self) -> None:
         if not self.events:

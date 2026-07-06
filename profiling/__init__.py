@@ -1,7 +1,7 @@
 """
 __init__.py — profiling package
 """
-from .mfu import MFUProfiler, MFUReport, MemoryAuditor
 from .chrome_trace import ChromeTracer
+from .mfu import MemoryAuditor, MFUProfiler, MFUReport
 
 __all__ = ["MFUProfiler", "MFUReport", "MemoryAuditor", "ChromeTracer"]

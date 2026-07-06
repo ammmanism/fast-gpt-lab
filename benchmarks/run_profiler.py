@@ -4,26 +4,28 @@ Hooks deeply into the forward/backward pass to generate Chrome Traces and Flop c
 """
 import torch
 import torch.profiler
+
+from profiling.trace_export import TraceExporter
 from src.vanilla.config import GPTConfig
 from src.vanilla.model import GPT
-from profiling.trace_export import TraceExporter
+
 
 def run_chrome_trace_profiling():
     print("🔬 Booting deep Chrome Trace instrumentation...")
     cfg = GPTConfig.gpt2_small()
     model = GPT(cfg).cuda()
-    
+
     # Dummy data
     bsz, seq_len = 8, 1024
     x = torch.randint(0, cfg.vocab_size, (bsz, seq_len), device="cuda")
     y = torch.randint(0, cfg.vocab_size, (bsz, seq_len), device="cuda")
-    
+
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
-    
+
     # We profile exactly 6 steps to capture the 'Active' window.
     schedule = TraceExporter.get_schedule()
     handler = TraceExporter.get_handler("./profiling_logs/trace_outputs")
-    
+
     with torch.profiler.profile(
         activities=[
             torch.profiler.ProfilerActivity.CPU,

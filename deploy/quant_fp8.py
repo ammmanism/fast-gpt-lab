@@ -5,6 +5,7 @@ Serves models on low-VRAM environments using symmetrical matrix packing.
 import torch
 import torch.nn as nn
 
+
 class QuantizedLinear(nn.Module):
     """
     Substitutes standard FP16 Linear layers with INT8/FP8 equivalents.
@@ -15,7 +16,7 @@ class QuantizedLinear(nn.Module):
         self.in_features = in_features
         self.out_features = out_features
         self.bits = bits
-        
+
         # We store weights in compressed INT8 format regardless of activation types
         self.register_buffer("weight", torch.empty((out_features, in_features), dtype=torch.int8))
         self.register_buffer("scales", torch.empty((out_features,), dtype=torch.float16))
@@ -25,19 +26,19 @@ class QuantizedLinear(nn.Module):
     def pack(self, linear_layer: nn.Linear):
         """Converts an existing FP16/BF16 linear layer into INT8 format."""
         weight_fp16 = linear_layer.weight.data
-        
+
         # Calculate row-wise absolute maximums
         abs_max = torch.amax(torch.abs(weight_fp16), dim=1)
-        
+
         # Calculate quantization scales (127 for INT8)
         q_max = float(2**(self.bits - 1) - 1)
         scales = abs_max / q_max
         self.scales.copy_(scales)
-        
+
         # Quantize and cast to raw int8
         weight_int8 = torch.round(weight_fp16 / scales.unsqueeze(1)).clamp(-q_max, q_max).to(torch.int8)
         self.weight.copy_(weight_int8)
-        
+
         if linear_layer.bias is not None:
             self.bias.copy_(linear_layer.bias.data)
 

@@ -2,8 +2,10 @@
 VRAM Auditing & Fragmentation — fast-gpt-lab
 Tracks PyTorch memory allocator to measure fragmentation and peak VRAM.
 """
-import torch
 import gc
+
+import torch
+
 
 class MemoryAuditor:
     """
@@ -27,8 +29,8 @@ class MemoryAuditor:
         allocated = torch.cuda.memory_allocated(device)
         reserved = torch.cuda.memory_reserved(device)
         peak_allocated = torch.cuda.max_memory_allocated(device)
-        
-        # Fragmentation = Reserved memory that the OS gave to PyTorch, 
+
+        # Fragmentation = Reserved memory that the OS gave to PyTorch,
         # but PyTorch isn't currently using for active tensors.
         if reserved > 0:
             fragmentation_ratio = (reserved - allocated) / reserved

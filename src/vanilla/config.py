@@ -2,7 +2,7 @@
 GPT Model Configuration — fast-gpt-lab
 Reference: Attention Is All You Need (Vaswani et al., 2017)
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 

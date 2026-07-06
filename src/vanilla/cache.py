@@ -2,9 +2,10 @@
 KV Cache Implementation — fast-gpt-lab
 Enables O(1) step time for auto-regressive decoding instead of O(T^2).
 """
-import torch
 from dataclasses import dataclass
-from typing import Optional
+
+import torch
+
 
 @dataclass
 class KVCache:
@@ -26,8 +27,8 @@ class KVCache:
         self.k_cache[:, :, pos:pos+seq_len, :] = k_new
         self.v_cache[:, :, pos:pos+seq_len, :] = v_new
         self.seq_len = max(self.seq_len, pos + seq_len)
-        
+
         return self.k_cache[:, :, :self.seq_len, :], self.v_cache[:, :, :self.seq_len, :]
-    
+
     def reset(self):
         self.seq_len = 0

@@ -2,7 +2,6 @@
 Tensor Core Hardware Alignment — fast-gpt-lab
 Validates architectural matrices for multiplier efficiency.
 """
-import torch
 
 def enforce_tensor_core_alignment(vocab_size: int, hidden_dim: int, head_dim: int) -> bool:
     """
@@ -14,7 +13,7 @@ def enforce_tensor_core_alignment(vocab_size: int, hidden_dim: int, head_dim: in
     errors = []
     if vocab_size % 8 != 0:
         errors.append(f"Vocab Size {vocab_size} is not a multiple of 8. Matmuls will be unoptimized.")
-    
+
     if hidden_dim % 8 != 0:
         errors.append(f"Hidden Dim {hidden_dim} is not a multiple of 8.")
 
@@ -25,7 +24,7 @@ def enforce_tensor_core_alignment(vocab_size: int, hidden_dim: int, head_dim: in
         for err in errors:
             print(f"⚠️ TENSOR CORE WARNING: {err}")
         return False
-        
+
     return True
 
 def pad_vocab_size(original_vocab_size: int, alignment: int = 8) -> int:

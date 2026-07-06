@@ -6,6 +6,7 @@ import torch
 import triton
 import triton.language as tl
 
+
 @triton.jit
 def _layer_norm_fwd_fused(
     X,  # pointer to the input
@@ -32,28 +33,28 @@ def _layer_norm_fwd_fused(
     mask = cols < N
     x = tl.load(X + cols, mask=mask, other=0.).to(tl.float32)
     mean = tl.sum(x, axis=0) / N
-    
+
     # Compute variance
     _var = tl.zeros([1], dtype=tl.float32)
     x_centered = tl.where(mask, x - mean, 0.)
     var = tl.sum(x_centered * x_centered, axis=0) / N
     rstd = 1 / tl.sqrt(var + eps)
-    
+
     # Write mean / rstd
     tl.store(Mean + row, mean)
     tl.store(Rstd + row, rstd)
-    
+
     # Normalize and apply linear transformation
     x_hat = x_centered * rstd
     w = tl.load(W + cols, mask=mask)
     b = tl.load(B + cols, mask=mask)
     y = x_hat * w + b
-    
+
     # FUSED RESIDUAL BLOCK
     if Residual is not None:
         res = tl.load(Residual + cols, mask=mask)
         y = y + res
-        
+
     tl.store(Y + cols, y, mask=mask)
 
 class FusedLayerNorm(torch.autograd.Function):
@@ -64,26 +65,26 @@ class FusedLayerNorm(torch.autograd.Function):
         x = x.view(-1, x_shape_og[-1])
         if residual is not None:
             residual = residual.view(-1, x_shape_og[-1])
-            
+
         M, N = x.shape
         y = torch.empty_like(x)
         mean = torch.empty((M,), dtype=torch.float32, device=x.device)
         rstd = torch.empty((M,), dtype=torch.float32, device=x.device)
-        
+
         BLOCK_SIZE = triton.next_power_of_2(N)
         num_warps = 4 if BLOCK_SIZE < 2048 else 8
-        
+
         _layer_norm_fwd_fused[(M,)](
             x, y, weight, bias, residual, mean, rstd,
-            x.stride(0), N, eps, 
+            x.stride(0), N, eps,
             num_warps=num_warps, BLOCK_SIZE=BLOCK_SIZE
         )
-        
+
         ctx.save_for_backward(x, weight, bias, mean, rstd)
         ctx.BLOCK_SIZE = BLOCK_SIZE
         ctx.num_warps = num_warps
         ctx.eps = eps
-        
+
         return y.view(*x_shape_og)
 
 def fused_layer_norm(x, weight, bias, residual=None, eps=1e-5):

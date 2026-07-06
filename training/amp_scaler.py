@@ -5,6 +5,7 @@ and passes through seamlessly for BF16/FP32.
 """
 import torch
 
+
 class AMPScaler:
     """
     Robust gradient scaler wrapper for Automated Mixed Precision (AMP).

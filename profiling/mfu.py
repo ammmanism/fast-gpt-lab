@@ -7,11 +7,10 @@ Formula:
     MFU = (observed_throughput × model_flops_per_token) / peak_hardware_flops
 """
 import time
-import math
-import torch
 from dataclasses import dataclass
 from typing import Optional
 
+import torch
 
 # ─── Hardware peak FLOPs database ────────────────────────────────────────────
 # Source: NVIDIA product specifications
@@ -74,7 +73,7 @@ class MFUProfiler:
         self._peak = self._get_peak_tflops(gpu_name)
         self._t_start: Optional[float] = None
 
-        print(f"📊 MFUProfiler initialized")
+        print("📊 MFUProfiler initialized")
         print(f"   Model FLOPs/token : {self._flops_per_token/1e9:.2f} GFLOPs")
         print(f"   Peak hardware     : {self._peak:.1f} TFLOPs")
         print(f"   Tokens/step       : {self.tokens_per_step:,}")

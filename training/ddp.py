@@ -3,7 +3,6 @@ DDP (Distributed Data Parallel) training utilities — fast-gpt-lab
 Simpler than FSDP: all ranks hold full model copy, sync gradients only.
 Best for models < 1B params where model fits in GPU VRAM.
 """
-import os
 import torch
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP

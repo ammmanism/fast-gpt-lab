@@ -3,8 +3,10 @@ Enterprise Telemetry Integration — fast-gpt-lab
 Weights & Biases integration for cluster-scale experiment tracking.
 """
 import os
+from typing import Any, Dict, Optional
+
 import torch
-from typing import Dict, Any, Optional
+
 
 class TelemetryManager:
     """
@@ -14,7 +16,7 @@ class TelemetryManager:
     def __init__(self, project_name: str, run_name: str, config: Dict[str, Any], enabled: bool = True):
         self.enabled = enabled
         self.step = 0
-        
+
         if self.enabled:
             try:
                 import wandb
@@ -35,7 +37,7 @@ class TelemetryManager:
         """Log a dictionary of metrics."""
         if not self.enabled:
             return
-            
+
         current_step = step if step is not None else self.step
         self.wandb.log(metrics, step=current_step)
         self.step = current_step + 1

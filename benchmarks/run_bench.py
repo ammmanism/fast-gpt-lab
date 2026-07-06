@@ -2,10 +2,11 @@
 Benchmark Runner — fast-gpt-lab
 Compares fast-gpt-lab throughput vs NanoGPT-style baseline and PyTorch vanilla.
 """
-import time
-import torch
 import argparse
+import time
 from dataclasses import dataclass
+
+import torch
 
 
 @dataclass
@@ -19,7 +20,8 @@ class BenchResult:
 
 def setup_model(variant: str, device: str) -> tuple:
     """Return (model, batch, seq_len) for each variant."""
-    import sys, os
+    import os
+    import sys
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
     from src.vanilla.config import GPTConfig
     from src.vanilla.model import GPT
@@ -110,7 +112,7 @@ def main():
     parser.add_argument("--steps", type=int, default=50)
     args = parser.parse_args()
 
-    print(f"🚀 fast-gpt-lab Benchmark Suite")
+    print("🚀 fast-gpt-lab Benchmark Suite")
     print(f"   Device: {args.device.upper()}")
     if args.device == "cuda":
         print(f"   GPU   : {torch.cuda.get_device_name(0)}")

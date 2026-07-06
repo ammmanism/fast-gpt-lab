@@ -2,21 +2,17 @@
 Vanilla Training Loop — fast-gpt-lab
 Clean, readable training script with gradient accumulation, AMP, and W&B logging.
 """
-import os
 import math
+import os
 import time
-import argparse
 from contextlib import nullcontext
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 import torch
-from torch.optim.lr_scheduler import CosineAnnealingLR
 
 from .config import GPTConfig
-from .model import GPT
 from .data import DataLoader
-
+from .model import GPT
 
 # ─── Training Config ─────────────────────────────────────────────────────────
 

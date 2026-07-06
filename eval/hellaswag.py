@@ -6,9 +6,10 @@ Task: given a partial sentence + 4 continuations, pick the most likely one.
 GPT-2-117M: 29.6% | GPT-2-345M: 40.9% | GPT-3-175B: 79.3%
 """
 import json
-import torch
-import tiktoken
 from pathlib import Path
+
+import tiktoken
+import torch
 
 
 @torch.no_grad()
@@ -87,6 +88,6 @@ def _download_hellaswag(dest: Path) -> None:
     import urllib.request
     url = "https://raw.githubusercontent.com/rowanz/hellaswag/master/data/hellaswag_val.jsonl"
     dest.parent.mkdir(parents=True, exist_ok=True)
-    print(f"⬇️  Downloading HellaSwag validation set...")
+    print("⬇️  Downloading HellaSwag validation set...")
     urllib.request.urlretrieve(url, str(dest))
     print(f"  ✅ Saved to {dest}")

@@ -6,8 +6,9 @@ Perplexity: PPL = exp(-1/N Σ log P(w_t | w_<t))
 Lower is better. GPT-2-117M achieves ~29.4 on WikiText-103.
 """
 import math
-import torch
 from pathlib import Path
+
+import torch
 
 
 @torch.no_grad()
@@ -85,9 +86,9 @@ def _load_tokens(dataset: str, split: str) -> list[int]:
 
 
 def _download_wikitext(dataset: str, split: str, cache_path: Path) -> list[int]:
-    from datasets import load_dataset
-    import tiktoken
     import numpy as np
+    import tiktoken
+    from datasets import load_dataset
 
     print(f"⬇️  Downloading {dataset}...")
     ds_name = "wikitext" if "wikitext" in dataset else dataset

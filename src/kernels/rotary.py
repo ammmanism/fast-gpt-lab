@@ -6,6 +6,7 @@ import torch
 import triton
 import triton.language as tl
 
+
 @triton.jit
 def _rope_fwd_kernel(
     Q, K, Cos, Sin,

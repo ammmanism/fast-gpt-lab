@@ -2,12 +2,10 @@
 Byte-Pair Encoding from first principles.
 Reference: Sennrich et al. (2016) "Neural Machine Translation of Rare Words with Subword Units"
 """
-import re
-import json
 import collections
+import json
+import re
 from pathlib import Path
-from typing import Optional
-
 
 # ─── Regex pattern (same as GPT-2) ───────────────────────────────────────────
 # Splits input into chunks: contractions, letters, numbers, spaces, others

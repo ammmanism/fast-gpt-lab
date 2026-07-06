@@ -3,7 +3,8 @@ Chrome Trace Analyzer — fast-gpt-lab
 Parses PyTorch Profiler JSON traces to identify GPU idle times and kernel bottlenecks.
 """
 import json
-from typing import List, Dict
+from typing import Dict, List
+
 
 class TraceAnalyzer:
     """
@@ -29,6 +30,6 @@ class TraceAnalyzer:
         kernels = self.extract_gpu_kernels()
         if not kernels:
             return 0.0
-            
+
         total_dur_us = sum(k.get('dur', 0) for k in kernels)
         return total_dur_us / 1000.0  # ms

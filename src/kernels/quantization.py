@@ -4,6 +4,7 @@ Provides INT8 and FP4 weight quantization hooks for deployment.
 """
 import torch
 
+
 def quantize_int8(weight: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Symmetric INT8 per-tensor quantization.

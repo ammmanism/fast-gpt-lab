@@ -4,11 +4,12 @@ Paper-to-code implementation that is both readable AND fast.
 Uses torch.nn.functional.scaled_dot_product_attention (FlashAttention backend).
 """
 import math
+
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from .config import GPTConfig
 
+from .config import GPTConfig
 
 # ─── Attention ────────────────────────────────────────────────────────────────
 

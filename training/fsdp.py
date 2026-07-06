@@ -5,21 +5,23 @@ Fully Sharded Data Parallel for training models across multiple GPUs.
 FSDP shards parameters, gradients, and optimizer states across all ranks.
 Memory per GPU: O(N/world_size) instead of O(N) — enables 7B+ model training.
 """
+import functools
 import os
+
 import torch
 import torch.distributed as dist
 from torch.distributed.fsdp import (
-    FullyShardedDataParallel as FSDP,
-    ShardingStrategy,
     BackwardPrefetch,
-    MixedPrecision,
     CPUOffload,
+    MixedPrecision,
+    ShardingStrategy,
+)
+from torch.distributed.fsdp import (
+    FullyShardedDataParallel as FSDP,
 )
 from torch.distributed.fsdp.wrap import (
     size_based_auto_wrap_policy,
-    transformer_auto_wrap_policy,
 )
-import functools
 
 
 def setup_distributed() -> tuple[int, int]:

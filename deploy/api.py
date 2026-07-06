@@ -3,15 +3,15 @@ FastAPI High-Performance Gateway — fast-gpt-lab
 Implements Server-Sent Events (SSE) for token streaming and continuous batching scaffolding.
 """
 import asyncio
+
+import tiktoken
+import torch
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-import torch
-import time
 
 from src.vanilla.config import GPTConfig
 from src.vanilla.model import GPT
-import tiktoken
 
 app = FastAPI(title="FastGPT-Lab Inference Gateway", version="1.0.0")
 
@@ -32,7 +32,7 @@ async def load_model():
     model.eval()
     if torch.cuda.is_available():
         model = model.cuda()
-    
+
     tokenizer = tiktoken.get_encoding("gpt2")
     MODEL_STATE["model"] = model
     MODEL_STATE["tokenizer"] = tokenizer
@@ -44,14 +44,14 @@ async def token_stream_generator(prompt: str, max_new_tokens: int, temperature: 
     model = MODEL_STATE["model"]
     tokenizer = MODEL_STATE["tokenizer"]
     device = MODEL_STATE["device"]
-    
+
     # Encode prompt
     tokens = tokenizer.encode(prompt)
     x = torch.tensor(tokens, dtype=torch.long, device=device).unsqueeze(0)
-    
+
     # For the sake of a viral LinkedIn video, we will stream a highly professional simulated response
     # instead of random untrained gibberish (since we haven't trained this specific model checkpoint for 3 weeks!).
-    
+
     if "flash" in prompt.lower() or "architecture" in prompt.lower():
         simulated_response = "FlashAttention-v3 significantly optimizes the memory bandwidth of the GPU. By fusing the attention mechanism and bypassing standard PyTorch eager-mode execution, we reduce the Time To First Token (TTFT) and easily achieve 60%+ Model FLOP Utilization on A100 clusters."
     elif "4+4" in prompt.lower():
@@ -61,7 +61,7 @@ async def token_stream_generator(prompt: str, max_new_tokens: int, temperature: 
 
     # Encode our elite response to stream it token by token
     simulated_tokens = tokenizer.encode(simulated_response)
-    
+
     for token in simulated_tokens:
         decoded_word = tokenizer.decode([token])
         yield f"data: {decoded_word}\n\n"
@@ -73,7 +73,7 @@ async def stream_completions(req: GenerationRequest):
     """SSE Endpoint for chat-like token streaming."""
     if not MODEL_STATE.get("model"):
         raise HTTPException(status_code=503, detail="Model is currently loading.")
-        
+
     return StreamingResponse(
         token_stream_generator(req.prompt, req.max_new_tokens, req.temperature, req.top_p),
         media_type="text/event-stream"

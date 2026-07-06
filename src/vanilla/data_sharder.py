@@ -4,6 +4,7 @@ Ensures that each distributed worker processes mutually exclusive subsets of the
 """
 from typing import Iterator
 
+
 class DistDataSharder:
     """
     Wraps any python iterator to yield only the elements assigned to this rank.

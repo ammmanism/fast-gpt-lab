@@ -2,9 +2,10 @@
 FLOP & MFU Calculator — fast-gpt-lab
 Computes Model FLOP Utilization based on A100/H100 theoretical peaks.
 """
-import torch
 from dataclasses import dataclass
+
 from src.vanilla.config import GPTConfig
+
 
 @dataclass
 class HardwareSpec:
@@ -36,18 +37,18 @@ def calculate_mfu(cfg: GPTConfig, batch_size: int, seq_len: int, time_per_iter_m
     """
     if hw_name not in HARDWARE_DB:
         raise ValueError(f"Hardware {hw_name} not in database.")
-    
+
     hw = HARDWARE_DB[hw_name]
-    
+
     # 6 FLOPs per param per token (2 for forward, 4 for backward approximations)
     flops_per_iter = 6.0 * cfg.n_params * batch_size * seq_len
-    
+
     # Convert iter time to seconds
     iter_s = time_per_iter_ms / 1000.0
-    
+
     # Achieved TFLOPS
     achieved_tflops = (flops_per_iter / iter_s) / 1e12
-    
+
     # Ratio
     mfu = achieved_tflops / hw.peak_tflops
     return mfu

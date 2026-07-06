@@ -6,8 +6,8 @@ FP8 formats:
   E4M3: range [-448, 448], good for weights/activations (high precision near 0)
   E5M2: range [-57344, 57344], good for gradients (needs larger range)
 """
+
 import torch
-from typing import Optional
 
 
 def is_fp8_available() -> bool:

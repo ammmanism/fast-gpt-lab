@@ -2,10 +2,11 @@
 Benchmark Utilities — fast-gpt-lab
 High-precision timers and throughput calculators for hardware-aware profiling.
 """
-import torch
-import time
+from typing import Callable
+
 import pandas as pd
-from typing import Callable, List, Dict
+import torch
+
 
 class BenchmarkSuite:
     """
@@ -22,19 +23,19 @@ class BenchmarkSuite:
         # Warmup
         for _ in range(self.warmup):
             func(*args, **kwargs)
-        
+
         torch.cuda.synchronize()
         start_event = torch.cuda.Event(enable_timing=True)
         end_event = torch.cuda.Event(enable_timing=True)
-        
+
         start_event.record()
         for _ in range(self.repeat):
             func(*args, **kwargs)
         end_event.record()
-        
+
         torch.cuda.synchronize()
         ms = start_event.elapsed_time(end_event) / self.repeat
-        
+
         self.results.append({"kernel": name, "time_ms": ms})
         print(f"⏱️ {name:<25}: {ms:>8.3f} ms")
         return ms

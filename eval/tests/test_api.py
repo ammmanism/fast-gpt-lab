@@ -1,6 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
-from deploy.api import app, MODEL_STATE
+
+from deploy.api import MODEL_STATE, app
+
 
 # Initialize a dummy state for testing without loading the full model
 @pytest.fixture(autouse=True)
