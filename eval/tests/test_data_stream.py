@@ -3,7 +3,7 @@ import torch
 import unittest.mock as mock
 from src.vanilla.streaming_data import StreamingDataLoader
 
-@mock.patch("src.vanilla.streaming_data.load_dataset")
+@mock.patch("datasets.load_dataset")
 def test_streaming_loader_shapes(mock_load):
     # Mocking a trivial dataset response
     mock_load.return_value = [{"text": "hello world test sentence"}] * 100

@@ -39,7 +39,9 @@ jobs:
           print(f'✅ Model forward pass OK | loss={loss.item():.4f}')
           print(f'   Model: {model.config}')
           p = model.count_parameters()
-          print(f'   Params: {p[\"total\"]:,} total, {p[\"trainable\"]:,} trainable')
+          total = p['total']
+          trainable = p['trainable']
+          print(f'   Params: {total:,} total, {trainable:,} trainable')
           "
 
       - name: Run tokenizer unit test

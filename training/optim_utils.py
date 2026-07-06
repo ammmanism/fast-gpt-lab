@@ -56,8 +56,8 @@ def get_weight_decay_params(model: torch.nn.Module, weight_decay: float = 0.1):
                 decay.add(pn)
 
     optim_groups = [
-        {"params": [param_dict[pn] for pn in sorted(list(decay))], "weight_decay": weight_decay},
-        {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
+        {"params": [param_dict[pn] for pn in sorted(list(decay)) if pn in param_dict], "weight_decay": weight_decay},
+        {"params": [param_dict[pn] for pn in sorted(list(no_decay)) if pn in param_dict], "weight_decay": 0.0},
     ]
     
     return optim_groups

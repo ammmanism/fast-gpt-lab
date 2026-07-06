@@ -130,6 +130,8 @@ class BPETokenizer:
             return word
         while True:
             # Find the highest-priority merge available in the current word
+            if not pairs:
+                break
             bigram = min(pairs, key=lambda p: self.merges.get(p, float("inf")))
             if bigram not in self.merges:
                 break

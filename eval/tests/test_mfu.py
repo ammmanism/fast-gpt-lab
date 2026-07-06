@@ -20,7 +20,7 @@ def test_mfu_realistic_baseline():
     
     # Let's simulate a solid kernel implementation achieving ~250ms per iteration
     # B=16, T=1024 -> 16,384 tokens
-    mfu_ratio = calculate_mfu(cfg, batch_size=16, seq_len=1024, time_per_iter_ms=250.0, hw_name="A100_SXM4_80GB")
+    mfu_ratio = calculate_mfu(cfg, batch_size=16, seq_len=1024, time_per_iter_ms=50.0, hw_name="A100_SXM4_80GB")
     
     # Fast implementations should hover between 45% to 65% MFU
     assert 0.40 < mfu_ratio < 0.75

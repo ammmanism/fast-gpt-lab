@@ -12,6 +12,8 @@ dependencies = [
     "wandb",
     "bitsandbytes",
     "flash-attn>=2.5.0",
+    "datasets",
+    "tiktoken",
 ]
 readme = "README.md"
 requires-python = ">=3.10"
