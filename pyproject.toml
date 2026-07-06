@@ -43,6 +43,7 @@ dev-dependencies = [
     "uvicorn",
     "aiohttp",
     "rich",
+    "httpx2",
 ]
 
 [tool.ruff]
