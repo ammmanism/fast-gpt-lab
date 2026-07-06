@@ -44,6 +44,7 @@ dev-dependencies = [
     "aiohttp",
     "rich",
     "httpx2",
+    "datasets",
 ]
 
 [tool.ruff]
