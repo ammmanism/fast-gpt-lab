@@ -1,26 +1,35 @@
 [project]
 name = "fast-gpt-lab"
-version = "0.1.0"
+version = "1.1.0"
 description = "High-performance, elite GPT implementation from first principles to Triton kernels."
 authors = [{ name = "Elite Engineer", email = "engineer@example.com" }]
 dependencies = [
     "torch>=2.2.0",
-    "triton>=2.1.0",
     "numpy>=1.26.0",
-    "transformers",
     "tqdm",
-    "wandb",
-    "bitsandbytes",
-    "flash-attn>=2.5.0",
-    "datasets",
     "tiktoken",
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
+
+[project.optional-dependencies]
+gpu = [
+    "triton>=2.1.0",
+    "flash-attn>=2.5.0",
+    "bitsandbytes",
+]
+full = [
+    "transformers",
+    "wandb",
+    "datasets",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 
 [tool.uv]
 dev-dependencies = [
@@ -30,6 +39,10 @@ dev-dependencies = [
     "pre-commit",
     "pandas",
     "matplotlib",
+    "fastapi",
+    "uvicorn",
+    "aiohttp",
+    "rich",
 ]
 
 [tool.ruff]
@@ -41,5 +54,5 @@ select = ["E", "F", "I", "N", "W", "C90", "B"]
 ignore = ["E501"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["eval"]
 python_files = "test_*.py"

@@ -18,14 +18,16 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Set up Python
+        run: uv python install 3.12
+
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --python 3.12
 
       - name: Run unit benchmark (CPU)
         run: |
-          uv run python -c "
+          PYTHONPATH=. uv run python -c "
           import sys, os
-          sys.path.insert(0, '.')
           import torch
           from src.vanilla.config import GPTConfig
           from src.vanilla.model import GPT
@@ -37,17 +39,17 @@ jobs:
           logits, loss = model(x, y)
           assert logits.shape == (2, 32, cfg.vocab_size), f'Bad logits shape: {logits.shape}'
           assert loss.item() > 0, 'Loss must be positive'
-          print(f'✅ Model forward pass OK | loss={loss.item():.4f}')
-          print(f'   Model: {model.config}')
+          print(f'Model forward pass OK | loss={loss.item():.4f}')
+          print(f'  Model: {model.config}')
           p = model.count_parameters()
           total = p['total']
           trainable = p['trainable']
-          print(f'   Params: {total:,} total, {trainable:,} trainable')
+          print(f'  Params: {total:,} total, {trainable:,} trainable')
           "
 
       - name: Run tokenizer unit test
         run: |
-          uv run python -c "
+          PYTHONPATH=. uv run python -c "
           import sys; sys.path.insert(0, '.')
           from src.tokenizer.bpe import BPETokenizer
           tok = BPETokenizer()
@@ -56,7 +58,7 @@ jobs:
           ids = tok.encode('hello world')
           decoded = tok.decode(ids)
           assert 'hello' in decoded or 'world' in decoded
-          print(f'✅ BPE tokenizer OK | vocab={len(tok)} | encode→decode roundtrip passed')
+          print(f'BPE tokenizer OK | vocab={len(tok)} | encode-decode roundtrip passed')
           "
 
       - name: Comment benchmark results on PR
@@ -68,5 +70,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '✅ **Performance Regression Check passed.** Model forward pass and tokenizer roundtrip validated on CPU. GPU benchmarks run on merge to main.'
+              body: '**Performance Regression Check passed.** Model forward pass and tokenizer roundtrip validated on CPU. GPU benchmarks run on merge to main.'
             })

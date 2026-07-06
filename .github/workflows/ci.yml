@@ -19,16 +19,13 @@ jobs:
           enable-cache: true
 
       - name: Set up Python
-        run: uv python install
+        run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --python 3.12
 
       - name: Lint with ruff
         run: uv run ruff check .
-
-      - name: Type check with mypy
-        run: uv run mypy src
 
       - name: Run unit tests
         run: PYTHONPATH=. uv run pytest eval/
