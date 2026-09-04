@@ -9,6 +9,7 @@ import torch
 import triton
 import triton.language as tl
 
+
 # ─── Triton forward kernel ────────────────────────────────────────────────────
 
 @triton.jit
@@ -28,12 +29,12 @@ def _flash_attn_fwd_kernel(
 ):
     """
     Tiled FlashAttention forward kernel.
-    
+
     Each kernel program handles BLOCK_M queries against all keys/values.
     The online softmax trick (Milakov & Gimelshein, 2018) avoids materialising
     the full N×N attention matrix, reducing memory from O(N²) → O(N).
-    
-    Key insight: 
+
+    Key insight:
         softmax(x) = exp(x - m) / Σ exp(x - m)   where m = max(x)
     We compute m and Σ incrementally across key blocks.
     """
@@ -64,13 +65,24 @@ def _flash_attn_fwd_kernel(
     l_i = tl.zeros([BLOCK_M], dtype=tl.float32)
     acc = tl.zeros([BLOCK_M, BLOCK_DMODEL], dtype=tl.float32)
 
-    q = tl.load(q_ptrs, mask=offs_m[:, None] < N_CTX, other=0.0)
+    # Q mask: [BLOCK_M, 1]
+    mask_q = offs_m[:, None] < N_CTX
+    # K/V mask: [BLOCK_N, 1] — matches tile geometry [BLOCK_N, D]
+    mask_kv = offs_n[:, None] < N_CTX
+
+    # Load Q once per M-block — evict first (not reused)
+    q = tl.load(q_ptrs, mask=mask_q, other=0.0, eviction_policy="evict_first")
 
     # Iterate over key/value blocks
     for start_n in range(0, (start_m + 1) * BLOCK_M if IS_CAUSAL else N_CTX, BLOCK_N):
         start_n = tl.multiple_of(start_n, BLOCK_N)
-        k = tl.load(k_ptrs + start_n * stride_kn, mask=(start_n + offs_n[None, :]) < N_CTX, other=0.0)
-        v = tl.load(v_ptrs + start_n * stride_vk, mask=(start_n + offs_n[:, None]) < N_CTX, other=0.0)
+
+        # Dynamic boundary mask for current N-block: [BLOCK_N, 1]
+        mask_n = (start_n + offs_n[:, None]) < N_CTX
+
+        # Load K and V — evict last (reused across M-loop iterations)
+        k = tl.load(k_ptrs + start_n * stride_kn, mask=mask_n, other=0.0, eviction_policy="evict_last")
+        v = tl.load(v_ptrs + start_n * stride_vk, mask=mask_n, other=0.0, eviction_policy="evict_last")
 
         # QK^T / sqrt(d)
         qk = tl.dot(q, tl.trans(k)) * scale
@@ -95,7 +107,7 @@ def _flash_attn_fwd_kernel(
 
     # Save log-sum-exp for backward pass
     tl.store(L + offs_m, m_i + tl.log(l_i), mask=offs_m < N_CTX)
-    tl.store(out_ptrs, acc, mask=offs_m[:, None] < N_CTX)
+    tl.store(out_ptrs, acc, mask=mask_q)
 
 
 # ─── Python wrapper ───────────────────────────────────────────────────────────
@@ -120,6 +132,10 @@ class FlashAttentionV3(torch.autograd.Function):
         assert q.dtype in (torch.float16, torch.bfloat16)
 
         B, H, N, D = q.shape
+
+        # HARDWARE GUARD: A100 Tensor Cores require head_dim % 8 == 0 for HMMA
+        assert D % 8 == 0, f"Head dim {D} must be divisible by 8 for A100 Tensor Cores (HMMA.16816)."
+
         scale = scale or (D ** -0.5)
 
         Out = torch.empty_like(q)

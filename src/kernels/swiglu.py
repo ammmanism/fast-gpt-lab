@@ -27,7 +27,7 @@ def _swiglu_fwd_kernel(
 ):
     """
     Fused kernel computes: Out[m, n] = silu(X[m,:] @ W_gate[:,n]) * X[m,:] @ W_up[:,n]
-    
+
     Fusion benefit: X is loaded ONCE for both matmuls instead of twice.
     The SiLU activation σ(x) = x / (1 + e^{-x}) is applied inline.
     """
@@ -38,6 +38,7 @@ def _swiglu_fwd_kernel(
     offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
     offs_k = tl.arange(0, BLOCK_K)
 
+    # Accumulators in FP32 for numerical stability (prevents BF16 overflow in GEMM)
     acc_gate = tl.zeros([BLOCK_M, BLOCK_N], dtype=tl.float32)
     acc_up   = tl.zeros([BLOCK_M, BLOCK_N], dtype=tl.float32)
 
@@ -69,7 +70,7 @@ def _swiglu_fwd_kernel(
 def fused_swiglu(x: torch.Tensor, w_gate: torch.Tensor, w_up: torch.Tensor) -> torch.Tensor:
     """
     Fused SwiGLU: Out = silu(x @ w_gate) ⊙ (x @ w_up)
-    
+
     Args:
         x:      (M, K) — input activations
         w_gate: (K, N) — gate projection weight
@@ -79,8 +80,14 @@ def fused_swiglu(x: torch.Tensor, w_gate: torch.Tensor, w_up: torch.Tensor) -> t
     """
     assert x.device.type == "cuda", "Fused SwiGLU requires CUDA"
     assert x.is_contiguous(), "Input must be contiguous"
+    assert x.dtype in (torch.float16, torch.bfloat16), "Input must be FP16 or BF16"
+
     M, K = x.shape
     _, N = w_gate.shape
+
+    # HARDWARE GUARD: A100 Tensor Cores require K % 8 == 0 and N % 8 == 0 for HMMA
+    assert K % 8 == 0, f"SwiGLU K dimension {K} must be divisible by 8 for A100 Tensor Cores."
+    assert N % 8 == 0, f"SwiGLU N dimension {N} must be divisible by 8 for A100 Tensor Cores."
 
     Out = torch.empty((M, N), dtype=x.dtype, device=x.device)
     BLOCK_M = BLOCK_N = 64

@@ -5,6 +5,7 @@ Peak bandwidth optimization combining elementwise operations into a single kerne
 import torch
 import triton
 import triton.language as tl
+import warnings
 
 
 @triton.jit
@@ -57,6 +58,7 @@ def _layer_norm_fwd_fused(
 
     tl.store(Y + cols, y, mask=mask)
 
+
 class FusedLayerNorm(torch.autograd.Function):
     @staticmethod
     def forward(ctx, x, weight, bias, residual=None, eps=1e-5):
@@ -74,6 +76,15 @@ class FusedLayerNorm(torch.autograd.Function):
         BLOCK_SIZE = triton.next_power_of_2(N)
         num_warps = 4 if BLOCK_SIZE < 2048 else 8
 
+        # OPTIMIZATION: Warn if hidden dim not aligned to 8 for potential tensor core ops
+        if N % 8 != 0:
+            warnings.warn(
+                f"LayerNorm hidden dim {N} not divisible by 8. "
+                f"Consider padding to {((N + 7) // 8) * 8} for optimal A100 memory throughput.",
+                UserWarning,
+                stacklevel=2
+            )
+
         _layer_norm_fwd_fused[(M,)](
             x, y, weight, bias, residual, mean, rstd,
             x.stride(0), N, eps,
@@ -86,6 +97,7 @@ class FusedLayerNorm(torch.autograd.Function):
         ctx.eps = eps
 
         return y.view(*x_shape_og)
+
 
 def fused_layer_norm(x, weight, bias, residual=None, eps=1e-5):
     return FusedLayerNorm.apply(x, weight, bias, residual, eps)
