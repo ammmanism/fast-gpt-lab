@@ -1,0 +1,2 @@
+Numerical parity and property-based tests PASSED on Tesla T4.
+V-mask fix and L2 eviction policies verified.
